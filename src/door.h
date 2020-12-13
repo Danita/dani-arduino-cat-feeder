@@ -37,6 +37,7 @@ class Door {
                     motor.run(FORWARD);
                 }
             }
+
             if (isClosing) {
                 if (isClosed()) {
                     motor.run(RELEASE);
