@@ -3,12 +3,14 @@
 #include <Arduino.h>
 #include <door.h>
 #include <authorization.h>
+#include <neotimer.h>
 
 class Feeder {
 
     Door door;
     Authorization auth;
     uint8_t IRPinRx;
+    Neotimer closeDoorTimer;
 
     enum states {
         F_IDLE,
@@ -43,6 +45,7 @@ class Feeder {
             Serial.begin(9600);
             door.setup();
             auth.setup();
+            closeDoorTimer = Neotimer(3000);
             Serial.println("Feeder is ready.");
         }
 
@@ -68,10 +71,22 @@ class Feeder {
                 break;
 
                 case F_OPEN:
-                    if (!isCatPresent()) {
-                        door.close();
-                        state = F_CLOSING;
-                        Serial.println("F_OPEN to F_CLOSING state.");
+                    if (closeDoorTimer.done()) {
+                        Serial.println("Timer done");
+                        if (!isCatPresent()) {
+                            Serial.println("Cat not present");
+                            door.close();
+                            state = F_CLOSING;
+                            Serial.println("F_OPEN to F_CLOSING state.");
+                        } else {
+                            Serial.println("Cat present, restarting close timer");
+                            closeDoorTimer.reset();
+                            closeDoorTimer.start();
+                        }
+                    }
+                    if (!closeDoorTimer.waiting()) {
+                        closeDoorTimer.start();
+                        Serial.println("Started close timer...");
                     }
                 break;
 
