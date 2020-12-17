@@ -23,7 +23,7 @@ class Door {
             pinMode(sensorBPin, INPUT_PULLUP);
             motor.setSpeed(255);
             motor.run(RELEASE);
-            Serial.println("Door is ready.");
+            Serial.println("[Door] is ready.");
         }
 
         void loop() {
@@ -31,7 +31,7 @@ class Door {
             if (isOpening) {
                 if (isOpen()) {
                     motor.run(RELEASE);
-                    Serial.println("Door is now open.");
+                    Serial.println("[Door] is now open.");
                     isOpening = false;
                 } else {
                     motor.run(FORWARD);
@@ -41,7 +41,7 @@ class Door {
             if (isClosing) {
                 if (isClosed()) {
                     motor.run(RELEASE);
-                    Serial.println("Door is now closed.");
+                    Serial.println("[Door] is now closed.");
                     isClosing = false;
                 } else {
                     motor.run(BACKWARD);
@@ -61,7 +61,7 @@ class Door {
             if (isOpen() || isOpening) {
                 return;
             }
-            Serial.println("Door opening... ");
+            Serial.println("[Door] opening... ");
             isOpening = true;
             isClosing = false;
         }
@@ -70,7 +70,7 @@ class Door {
             if (isClosed() || isClosing) {
                 return;
             }
-            Serial.println("Door closing... ");
+            Serial.println("[Door] closing... ");
             isOpening = false;
             isClosing = true;
         }

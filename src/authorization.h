@@ -53,11 +53,15 @@ class Authorization {
                 return false;
             }
         }
+
+        void flush() {
+            detectedTag = 0;
+        }
         
         void setup() {
             secondarySerial.begin(9600);
             rfid.begin();
-            Serial.println("RFID is ready.");
+            Serial.println("[Auth] is ready.");
         }
 
         void loop() {
