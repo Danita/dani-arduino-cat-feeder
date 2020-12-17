@@ -33,9 +33,10 @@ class Feeder {
             uint8_t rfidRxPin, 
             uint8_t RfidTxPin,
             uint8_t IRPinRx,
-            uint8_t manualTogglePin
+            uint8_t manualTogglePin,
+            uint8_t lightPin
             ):
-            door(motorNumber, sensorPinA, sensorPinB),
+            door(motorNumber, sensorPinA, sensorPinB, lightPin),
             auth(rfidRxPin, RfidTxPin),
             IRPinRx(IRPinRx),
             manualTogglePin(manualTogglePin)

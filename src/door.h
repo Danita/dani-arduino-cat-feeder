@@ -4,23 +4,28 @@
 #include <AFMotor.h>
 
 class Door {
-        AF_DCMotor motor;
-        const byte sensorAPin;
-        const byte sensorBPin; 
-        bool isOpening = false;
-        bool isClosing = false;
+
+    AF_DCMotor motor;
+    uint8_t sensorAPin;
+    uint8_t sensorBPin;
+    uint8_t lightPin;
+    bool isOpening = false;
+    bool isClosing = false;
 
     public:
     
-        Door(uint8_t motorNumber, byte pinA, byte pinB):
+        Door(uint8_t motorNumber, uint8_t pinA, uint8_t pinB, uint8_t pinL):
             motor(motorNumber),
             sensorAPin(pinA),
-            sensorBPin(pinB)
+            sensorBPin(pinB),
+            lightPin(pinL)
         {}
 
         void setup() {
             pinMode(sensorAPin, INPUT_PULLUP);
             pinMode(sensorBPin, INPUT_PULLUP);
+            pinMode(lightPin, OUTPUT);
+            digitalWrite(lightPin, LOW);
             motor.setSpeed(255);
             motor.run(RELEASE);
             Serial.println("[Door] is ready.");
@@ -62,6 +67,7 @@ class Door {
                 return;
             }
             Serial.println("[Door] opening... ");
+            digitalWrite(lightPin, HIGH);
             isOpening = true;
             isClosing = false;
         }
@@ -71,6 +77,7 @@ class Door {
                 return;
             }
             Serial.println("[Door] closing... ");
+            digitalWrite(lightPin, LOW);
             isOpening = false;
             isClosing = true;
         }
