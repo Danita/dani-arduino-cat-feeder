@@ -81,6 +81,7 @@ class Feeder {
                 break;
 
                 case F_OPENING:
+                    auth.flush(); // clear any tags read during door opening
                     if (door.isOpen()) {
                         state = F_OPEN;
                         Serial.println("F_OPENING to F_OPEN.");
@@ -88,6 +89,7 @@ class Feeder {
                 break;
 
                 case F_OPEN:
+                    auth.flush(); // clear any tags read during door open
                     if (closeDoorTimer.done()) {
                         Serial.println("Timer done");
                         if (!isCatPresent()) {
@@ -108,6 +110,7 @@ class Feeder {
                 break;
 
                 case F_CLOSING:
+                    auth.flush(); // clear any tags read during door closing
                     if (door.isClosed()) {
                         state = F_IDLE;
                         Serial.println("Door is closed, F_CLOSING to F_IDLE.");
@@ -115,6 +118,7 @@ class Feeder {
                 break;
 
                 case F_MANUALLY_OPENING:
+                    auth.flush(); // clear any tags read during door opening
                     if (door.isOpen()) {
                         state = F_MANUALLY_OPEN;
                         Serial.println("F_MANUALLY_OPENING to F_MANUALLY_OPEN.");
@@ -122,12 +126,12 @@ class Feeder {
                 break;
 
                 case F_MANUALLY_OPEN:
+                    auth.flush(); // clear any tags read during manual mode.
                     if (isManualBtnPressed()) {
                         Serial.println("Manual button pressed, closing door");
                         door.close();
                     }
                     if (door.isClosed()) {
-                        auth.flush(); // clear any tags read during manual mode.
                         state = F_IDLE;
                         Serial.println("Door is closed, F_MANUALLY_OPEN to F_IDLE.");
                     }
