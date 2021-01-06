@@ -8,7 +8,6 @@
 #define RFID_TX_PIN 13 // unused
 #define IR_RX_PIN 4
 #define MOTOR_MANUAL_TOGGLE_PIN 16
-#define LIGHT_PIN 2
 
 Feeder feeder(
     MOTOR_NUMBER,
@@ -17,12 +16,10 @@ Feeder feeder(
     RFID_RX_PIN,
     RFID_TX_PIN,
     IR_RX_PIN,
-    MOTOR_MANUAL_TOGGLE_PIN,
-    LIGHT_PIN
+    MOTOR_MANUAL_TOGGLE_PIN
 );
 
 void setup() {
-    
     feeder.setup();
 }
 

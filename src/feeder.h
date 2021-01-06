@@ -33,10 +33,9 @@ class Feeder {
             uint8_t rfidRxPin, 
             uint8_t RfidTxPin,
             uint8_t IRPinRx,
-            uint8_t manualTogglePin,
-            uint8_t lightPin
+            uint8_t manualTogglePin
             ):
-            door(motorNumber, sensorPinA, sensorPinB, lightPin),
+            door(motorNumber, sensorPinA, sensorPinB),
             auth(rfidRxPin, RfidTxPin),
             IRPinRx(IRPinRx),
             manualTogglePin(manualTogglePin)
@@ -56,7 +55,7 @@ class Feeder {
             Serial.begin(9600);
             door.setup();
             auth.setup();
-            closeDoorTimer = Neotimer(3000);
+            closeDoorTimer = Neotimer(5000);
             Serial.println("[Feeder] is ready.");
             pinMode(manualTogglePin, INPUT_PULLUP);
         }
@@ -109,11 +108,6 @@ class Feeder {
                 break;
 
                 case F_CLOSING:
-                    if (isCatPresent()) {
-                        door.open();
-                        state = F_OPENING;
-                        Serial.println("Cat in door!!! F_CLOSING to F_OPENING");
-                    }
                     if (door.isClosed()) {
                         state = F_IDLE;
                         Serial.println("Door is closed, F_CLOSING to F_IDLE.");

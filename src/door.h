@@ -14,18 +14,15 @@ class Door {
 
     public:
     
-        Door(uint8_t motorNumber, uint8_t pinA, uint8_t pinB, uint8_t pinL):
+        Door(uint8_t motorNumber, uint8_t pinA, uint8_t pinB):
             motor(motorNumber),
             sensorAPin(pinA),
-            sensorBPin(pinB),
-            lightPin(pinL)
+            sensorBPin(pinB)
         {}
 
         void setup() {
             pinMode(sensorAPin, INPUT_PULLUP);
             pinMode(sensorBPin, INPUT_PULLUP);
-            pinMode(lightPin, OUTPUT);
-            digitalWrite(lightPin, LOW);
             motor.setSpeed(255);
             motor.run(RELEASE);
             Serial.println("[Door] is ready.");
@@ -39,7 +36,7 @@ class Door {
                     Serial.println("[Door] is now open.");
                     isOpening = false;
                 } else {
-                    motor.run(FORWARD);
+                    motor.run(BACKWARD);
                 }
             }
 
@@ -49,17 +46,17 @@ class Door {
                     Serial.println("[Door] is now closed.");
                     isClosing = false;
                 } else {
-                    motor.run(BACKWARD);
+                    motor.run(FORWARD);
                 }
             }
         }
 
         bool isOpen() {
-            return digitalRead(sensorAPin) == LOW && digitalRead(sensorBPin) == HIGH;
+            return digitalRead(sensorAPin) == HIGH && digitalRead(sensorBPin) == LOW;
         }
 
         bool isClosed() {
-            return digitalRead(sensorAPin) == HIGH && digitalRead(sensorBPin) == LOW;
+            return digitalRead(sensorAPin) == LOW && digitalRead(sensorBPin) == HIGH;
         }
 
         void open() {
@@ -67,7 +64,6 @@ class Door {
                 return;
             }
             Serial.println("[Door] opening... ");
-            digitalWrite(lightPin, HIGH);
             isOpening = true;
             isClosing = false;
         }
@@ -77,7 +73,6 @@ class Door {
                 return;
             }
             Serial.println("[Door] closing... ");
-            digitalWrite(lightPin, LOW);
             isOpening = false;
             isClosing = true;
         }
