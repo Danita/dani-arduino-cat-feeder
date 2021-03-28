@@ -23,9 +23,9 @@ class Door {
         void setup() {
             pinMode(sensorAPin, INPUT_PULLUP);
             pinMode(sensorBPin, INPUT_PULLUP);
-            motor.setSpeed(150);
+            motor.setSpeed(255);
             motor.run(RELEASE);
-            Serial.println("[Door] is ready, speed 150.");
+            Serial.println("[Door] is ready.");
         }
 
         void loop() {

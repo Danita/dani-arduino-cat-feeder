@@ -45,7 +45,7 @@ class Authorization {
             rfid(secondarySerial)
         {}
 
-        bool isAuthorized() {
+        bool isAuthenticated() {
             if (detectedTag != 0) {
                 detectedTag = 0;
                 return true;

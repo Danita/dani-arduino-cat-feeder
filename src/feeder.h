@@ -9,7 +9,6 @@ class Feeder {
 
     Door door;
     Authorization auth;
-    uint8_t IRPinRx;
     uint8_t manualTogglePin;
     Neotimer closeDoorTimer;
 
@@ -18,8 +17,7 @@ class Feeder {
         F_OPENING,
         F_OPEN,
         F_CLOSING,
-        F_MANUALLY_OPENING,
-        F_MANUALLY_OPEN
+        F_CLOSED
     };
 
     uint8_t state = F_IDLE;
@@ -32,19 +30,12 @@ class Feeder {
             uint8_t sensorPinB,
             uint8_t rfidRxPin, 
             uint8_t RfidTxPin,
-            uint8_t IRPinRx,
             uint8_t manualTogglePin
             ):
             door(motorNumber, sensorPinA, sensorPinB),
             auth(rfidRxPin, RfidTxPin),
-            IRPinRx(IRPinRx),
             manualTogglePin(manualTogglePin)
         {}
-
-        bool isCatPresent() {
-            int val = analogRead(IRPinRx);
-            return (val < 1000);
-        }
 
         bool isManualBtnPressed() {
             int ret = digitalRead(manualTogglePin);
@@ -55,7 +46,7 @@ class Feeder {
             Serial.begin(9600);
             door.setup();
             auth.setup();
-            closeDoorTimer = Neotimer(5000);
+            closeDoorTimer = Neotimer(10000);
             Serial.println("[Feeder] is ready.");
             pinMode(manualTogglePin, INPUT_PULLUP);
         }
@@ -65,75 +56,57 @@ class Feeder {
             switch(state) {
                 
                 case F_IDLE:
-                    if (auth.isAuthorized()) {
-                        door.open();
-                        state = F_OPENING;
-                        Serial.println("Tag is authorized, F_IDLE to F_OPENING.");
-                    } else {
+                    if (auth.isAuthenticated()) {
                         door.close();
-                    }
-
-                    if (isManualBtnPressed()) {
-                        door.open();
-                        state = F_MANUALLY_OPENING;
-                        Serial.println("Manual toggle button is pressed, F_IDLE to F_MANUALLY_OPENING.");
-                    }
-                break;
-
-                case F_OPENING:
-                    auth.flush(); // clear any tags read during door opening
-                    if (door.isOpen()) {
-                        state = F_OPEN;
-                        Serial.println("F_OPENING to F_OPEN.");
-                    }
-                break;
-
-                case F_OPEN:
-                    auth.flush(); // clear any tags read during door open
-                    if (closeDoorTimer.done()) {
-                        Serial.println("Timer done");
-                        if (!isCatPresent()) {
-                            closeDoorTimer.reset();
-                            door.close();
-                            state = F_CLOSING;
-                            Serial.println("Cat not present, F_OPEN to F_CLOSING.");
-                        } else {
-                            Serial.println("Cat present, restarting close timer");
-                            closeDoorTimer.start();
-                        }
+                        state = F_CLOSING;
+                        Serial.println("Tag is authenticated, F_IDLE to F_CLOSING.");
                     } else {
-                        if (!closeDoorTimer.waiting()) {
-                            closeDoorTimer.start();
-                            Serial.println("Started close timer...");
-                        }
+                        door.open();
                     }
                 break;
 
                 case F_CLOSING:
                     auth.flush(); // clear any tags read during door closing
                     if (door.isClosed()) {
-                        state = F_IDLE;
-                        Serial.println("Door is closed, F_CLOSING to F_IDLE.");
+                        state = F_CLOSED;
+                        Serial.println("F_CLOSING to F_CLOSED.");
                     }
                 break;
 
-                case F_MANUALLY_OPENING:
-                    auth.flush(); // clear any tags read during door opening
+                case F_CLOSED:
+                    if (closeDoorTimer.done()) {
+                        Serial.println("Timer done");
+                        closeDoorTimer.reset();
+                        if (auth.isAuthenticated()) {
+                            closeDoorTimer.start();
+                            Serial.println("Authenticated after done, restarted open timer...");
+                        } else {
+                            door.open();
+                            state = F_OPENING;
+                            Serial.println("F_CLOSED to F_OPENING.");
+                        }
+                    } else {
+                        if (!closeDoorTimer.waiting()) {
+                            closeDoorTimer.start();
+                            Serial.println("Started open timer...");
+                        } else {
+                            if (auth.isAuthenticated()) {
+                                closeDoorTimer.reset();
+                                closeDoorTimer.start();
+                                Serial.println("Authenticated during wait, restarted open timer...");
+                            }
+                        }
+                    }
+                break;
+
+                case F_OPENING:
                     if (door.isOpen()) {
-                        state = F_MANUALLY_OPEN;
-                        Serial.println("F_MANUALLY_OPENING to F_MANUALLY_OPEN.");
-                    }
-                break;
-
-                case F_MANUALLY_OPEN:
-                    auth.flush(); // clear any tags read during manual mode.
-                    if (isManualBtnPressed()) {
-                        Serial.println("Manual button pressed, closing door");
-                        door.close();
-                    }
-                    if (door.isClosed()) {
                         state = F_IDLE;
-                        Serial.println("Door is closed, F_MANUALLY_OPEN to F_IDLE.");
+                        Serial.println("Door is open, F_OPENING to F_IDLE.");
+                    } else if (auth.isAuthenticated()) {
+                        door.close();
+                        state = F_CLOSING;
+                        Serial.println("Tag is authenticated, F_OPENING to F_CLOSING.");
                     }
                 break;
             }
